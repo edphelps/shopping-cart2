@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import PropTypes from 'prop-types';
 
-// TODO: figure out how not to need this
-let globalThis = null;
-
 /* ********************************************
 *  Nav bar
 *********************************************** */
@@ -53,6 +50,21 @@ CartItem.propTypes = {
   item: PropTypes.objectOf(PropTypes.object).isRequired,
 };
 
+/* ********************************************
+*  Row display for the cart totals
+*********************************************** */
+const CartTotalRow = ({ items }) => (
+  <div className="list-group-item">
+    <div className="row">
+      <div className="col-md-8"><b>TOTALS</b></div>
+      <div className="col-md-2"><b>{formatDollars(items.reduce((a, c) => a + c.product.priceInCents * c.quantity, 0))}</b></div>
+      <div className="col-md-2"><b>{items.reduce((a, c) => a + c.quantity, 0)}</b></div>
+    </div>
+  </div>
+);
+CartTotalRow.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
 /* ********************************************
 *  Table display of all items in cart
@@ -78,46 +90,57 @@ CartItems.propTypes = {
 };
 
 /* ********************************************
-*  Cart total row for listing table
-*********************************************** */
-const CartTotalRow = ({ items }) => (
-  <div className="list-group-item">
-    <div className="row">
-      <div className="col-md-8"><b>TOTALS</b></div>
-      <div className="col-md-2"><b>{formatDollars(items.reduce((a, c) => a + c.product.priceInCents * c.quantity, 0))}</b></div>
-      <div className="col-md-2"><b>{items.reduce((a, c) => a + c.quantity, 0)}</b></div>
-    </div>
-  </div>
-);
-CartTotalRow.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.object).isRequired,
-};
-
-/* ********************************************
 *  Form to add a new item to the cart
+      <form id="myform" onSubmit={onSubmit}>
 *********************************************** */
-const AddItem = ({ products, onSubmit }) => (
-  <div className="container">
-    <br />
-    <form id="myform" onSubmit={onSubmit}>
-      ADD: &nbsp;Quantity:&nbsp;
-      <input type="text" name="quantity" size="5" width="20px" required />
-      &nbsp;&nbsp;Product:&nbsp;
-      <select id="selProduct" name="selProduct">
-        { products.map(product => (
-          <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
-      </select>
-      &nbsp;&nbsp;<button type="submit">Submit</button>
-    </form>
-  </div>
-);
+const AddItemForm = ({ products, addItemCB }) => {
+  /* ************************
+  * onSumbit() handler
+  *************************** */
+  const onSubmit = (e) => {
+    console.log('onSubmit()');
+    e.preventDefault();
 
-AddItem.propTypes = {
-  products: PropTypes.arrayOf(PropTypes.object).isRequired,
-  onSubmit: PropTypes.func.isRequired,
+    // create item to add to cart
+    const elemSelProduct = e.target.selProduct;
+    const elemSelectedProduct = elemSelProduct.options[elemSelProduct.selectedIndex];
+    const newItem = {
+      product: {
+        id: parseInt(elemSelectedProduct.value, 10),
+        name: elemSelectedProduct.text,
+        priceInCents: parseInt(elemSelectedProduct.dataset.priceincents, 10),
+      },
+      quantity: parseInt(document.forms.myform.quantity.value, 10),
+    };
+
+    // CB sent by parent to get the date back from the form
+    addItemCB(newItem);
+  };
+
+  /* ************************
+  * return, html for the form
+  *************************** */
+  return (
+    <div className="container">
+      <br />
+      <form id="myform" onSubmit={onSubmit}>
+        ADD: &nbsp;Quantity:&nbsp;
+        <input type="text" name="quantity" size="5" width="20px" required />
+        &nbsp;&nbsp;Product:&nbsp;
+        <select id="selProduct" name="selProduct">
+          { products.map(product => (
+            <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
+        </select>
+        &nbsp;&nbsp;
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  );
 };
-
-
+AddItemForm.propTypes = {
+  products: PropTypes.arrayOf(PropTypes.object).isRequired,
+  addItemCB: PropTypes.func.isRequired,
+};
 
 
 /* ********************************************
@@ -146,50 +169,22 @@ class App extends Component {
   };
 
   /* ********************************************
-  *  Helper to add a new item to the cart
+  *  Callback used by the form's onSubmit to add a new item to cart
   *********************************************** */
-  addToCart(_item) {
-    const item = _item;
-    item.id = globalThis.state.cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
-    const newCart = [item, ...globalThis.state.cartItemsList];
-    globalThis.setState((prevState) => ({
-      cartItemsList: newCart,
+  addToCart = (_item) => {
+    // set the new item's ID to the next ID value available
+    const item = _item; // happy linter
+    const { cartItemsList } = this.state; // happy linter
+    item.id = cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
+
+    // add the new item to the state
+    this.setState(prevState => ({
+      cartItemsList: [item, ...prevState.cartItemsList],
     }));
-    console.log('---------');
-    console.log('cartItemsList: ', globalThis.state.cartItemsList);
-    console.log('---------');
-  }
 
-  componentDidMount() {
-    globalThis = this;
-  }
-
-  /* ********************************************
-  *  onSubmitAddItem()
-  *  TODO: push this function into the Form
-  *********************************************** */
-  onSubmitAddItem = (e) => {
-    e.preventDefault();
-
-    // create item to add to cart
-    const elemSelectionList = document.forms.myform.selProduct;
-
-    const newItem = {};
-    newItem.product = {
-      id: parseInt(elemSelectionList.options[elemSelectionList.selectedIndex].value, 10),
-      name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
-      priceInCents: parseInt(elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents, 10),
-    };
-    newItem.quantity = parseInt(document.forms.myform.quantity.value, 10);
-    globalThis.addItem(newItem);
-    // globalThis.addToCart(newItem);
-  }
-
-  /* ********************************************
-  *  addItem(), called by form's onSubmit
-  *********************************************** */
-  addItem(newItem) {
-    this.addToCart(newItem);
+    // console.log('---------');
+    // console.log('cartItemsList: ', this.state.cartItemsList);
+    // console.log('---------');
   }
 
   /* ********************************************
@@ -197,13 +192,13 @@ class App extends Component {
   *********************************************** */
   render() {
     console.log('render()');
-    const { products } = this.state; // linter wants destructuring for call to AddItem
+    const { products } = this.state; // linter wants destructuring for call to AddItemForm
     const { cartItemsList } = this.state; // linter wants destructuring to use this value below
     return (
       <div>
         <Nav />
 
-        <AddItem products={products} onSubmit={this.onSubmitAddItem} />
+        <AddItemForm products={products} addItemCB={this.addToCart} />
         <hr />
 
         <CartItems items={cartItemsList} />
