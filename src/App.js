@@ -117,24 +117,13 @@ AddItem.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
-/* ********************************************
-*  Helper to add a new item to the cart
-*********************************************** */
-function addToCart(_item) {
-  const item = _item;
-  item.id = globalThis.state.cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
-  const newCart = [item, ...globalThis.state.cartItemsList];
-  globalThis.setState((prevState) => ({
-    cartItemsList: newCart,
-  }));
-  console.log('---------');
-  console.log('cartItemsList: ', globalThis.state.cartItemsList);
-  console.log('---------');
-}
+
 
 
 /* ********************************************
+***********************************************
 *  Main app
+***********************************************
 *********************************************** */
 class App extends Component {
   state = {
@@ -156,14 +145,30 @@ class App extends Component {
     ],
   };
 
+  /* ********************************************
+  *  Helper to add a new item to the cart
+  *********************************************** */
+  addToCart(_item) {
+    const item = _item;
+    item.id = globalThis.state.cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
+    const newCart = [item, ...globalThis.state.cartItemsList];
+    globalThis.setState((prevState) => ({
+      cartItemsList: newCart,
+    }));
+    console.log('---------');
+    console.log('cartItemsList: ', globalThis.state.cartItemsList);
+    console.log('---------');
+  }
+
   componentDidMount() {
     globalThis = this;
   }
 
   /* ********************************************
   *  onSubmitAddItem()
+  *  TODO: push this function into the Form
   *********************************************** */
-  onSubmitAddItem(e) {
+  onSubmitAddItem = (e) => {
     e.preventDefault();
 
     // create item to add to cart
@@ -176,8 +181,15 @@ class App extends Component {
       priceInCents: parseInt(elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents, 10),
     };
     newItem.quantity = parseInt(document.forms.myform.quantity.value, 10);
-    addToCart(newItem);
+    globalThis.addItem(newItem);
+    // globalThis.addToCart(newItem);
+  }
 
+  /* ********************************************
+  *  addItem(), called by form's onSubmit
+  *********************************************** */
+  addItem(newItem) {
+    this.addToCart(newItem);
   }
 
   /* ********************************************
