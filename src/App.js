@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-// import logo from './logo.svg';
 import './App.css';
 import PropTypes from 'prop-types';
 
 /* ********************************************
-*
+*  Nav bar
 *********************************************** */
 const Nav = () => (
   <nav className="navbar navbar-dark bg-primary">
@@ -13,7 +12,7 @@ const Nav = () => (
 );
 
 /* ********************************************
-*
+*  Footer
 *********************************************** */
 const Foot = ({ year }) => (
   <nav className="navbar navbar-dark bg-dark">
@@ -29,7 +28,7 @@ Foot.propTypes = {
 
 
 /* ********************************************
-*
+*  Row display of a cart item
 *********************************************** */
 const CartItem = ({ item }) => (
   <div className="list-group-item">
@@ -46,7 +45,7 @@ CartItem.propTypes = {
 
 
 /* ********************************************
-*
+*  Table display of all items in cart
 *********************************************** */
 const CartItems = ({ items }) => (
   <div className="container">
@@ -68,40 +67,16 @@ CartItems.propTypes = {
 };
 
 /* ********************************************
-*
-*********************************************** */
-// function onSubmitAddItem(e) {
-//   console.log('onSubmitAddItem()');
-//   e.preventDefault();
-//   console.log('quantity: ', document.forms.myform.quantity.value);
-//   const elemSelectionList = document.forms.myform.theproduct;
-//   console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
-//   console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
-//
-//   const cart = {};
-//   cart.product = {
-//     id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
-//     name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
-//     princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
-//   };
-//   cart.quantity = document.forms.myform.quantity.value;
-//
-//   console.log('cart: ', cart);
-// }
-
-/* ********************************************
-*
+*  Form to add a new item to the cart
 *********************************************** */
 const AddItem = ({ products, onSubmit }) => {
-  // console.log('products: ', products);
-  console.log('*** onSubmit: ', onSubmit);
   return (
     <div className="container">
       <form id="myform" onSubmit={onSubmit}>
         Quantity:
         <input type="number" name="quantity" required />
         <br />
-        <select id="theproduct" name="theproduct">
+        <select id="selProduct" name="selProduct">
           { products.map(product => (
             <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
         </select>
@@ -117,29 +92,35 @@ AddItem.propTypes = {
 };
 
 /* ********************************************
-*
+*  TODO: move this into state
 *********************************************** */
 const cartItemsList = [
   { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
 ];
+
+/* ********************************************
+*  Helper to add a new item to the cart
+*********************************************** */
 function addToCart(_item) {
   const item = _item;
-  item.id = cartItemsList[cartItemsList.length - 1].id + 1;
-  cartItemsList.push(item);
-  console.log("---------");
+  item.id = cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
+  cartItemsList.unshift(item);
+  console.log('---------');
   console.log('cartItemsList: ', cartItemsList);
+  console.log('---------');
 }
 
 let globalThis = null;
-let globalRender = null;
+// let globalRender = null;
 
 /* ********************************************
-*
+*  Main app
 *********************************************** */
 class App extends Component {
   state = {
+    timestamp: new Date(),
     products: [
       { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 },
       { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 },
@@ -154,53 +135,56 @@ class App extends Component {
   };
 
   componentDidMount() {
-    globalRender = this.render;
     globalThis = this;
   }
 
+  /* ********************************************
+  *  onSubmitAddItem()
+  *********************************************** */
   onSubmitAddItem(e) {
-    console.log('MyonSubmitAddItem()');
     e.preventDefault();
-    console.log('quantity: ', document.forms.myform.quantity.value);
-    const elemSelectionList = document.forms.myform.theproduct;
-    console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
-    console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
+
+    // create item to add to cart
+    const elemSelectionList = document.forms.myform.selProduct;
 
     const newItem = {};
     newItem.product = {
-      id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
+      id: parseInt(elemSelectionList.options[elemSelectionList.selectedIndex].value, 10),
       name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
-      princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
+      priceInCents: parseInt(elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents, 10),
     };
-    newItem.quantity = document.forms.myform.quantity.value;
-
+    newItem.quantity = parseInt(document.forms.myform.quantity.value, 10);
     addToCart(newItem);
 
-    // globalThis.render();
-    globalRender.call(globalThis);
-
-    // console.log('cart: ', cart);
+    // force rendering
+    globalThis.setState((prevState) => ({
+      timestamp: Date()
+    }));
   }
 
+  /* ********************************************
+  *  render()
+  *********************************************** */
   render() {
-    console.log("---- rendering ----");
-    // console.log('onSubmitAddItem: ', onSubmitAddItem); // I EXIST!
+    console.log('render()');
     const { products } = this.state; // linter wants destructuring for call to AddItem
+    const { timestamp } = this.state; // linter wants destructuring to use this value below
     return (
       <div>
         <Nav />
-        <p>&nbsp;</p>
-        <p>{Date()}</p>
+
+        <p>{timestamp.toString()}</p>
+
+        <AddItem products={products} onSubmit={this.onSubmitAddItem} />
+        <hr />
+
         <CartItems items={cartItemsList} />
         <hr />
-        <AddItem products={products} onSubmit={this.onSubmitAddItem} />
-        <p>&nbsp;</p>
+
         <Foot year={2019} />
       </div>
     );
   }
-
-
 }
 
 export default App;
