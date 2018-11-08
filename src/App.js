@@ -70,33 +70,34 @@ CartItems.propTypes = {
 /* ********************************************
 *
 *********************************************** */
-function onSubmitAddItem(e) {
-  console.log('onSubmitAddItem()');
-  e.preventDefault();
-  console.log('quantity: ', document.forms.myform.quantity.value);
-  const elemSelectionList = document.forms.myform.theproduct;
-  console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
-  console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
-
-  const cart = {};
-  cart.product = {
-    id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
-    name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
-    princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
-  };
-  cart.quantity = document.forms.myform.quantity.value;
-
-  console.log('cart: ', cart);
-}
+// function onSubmitAddItem(e) {
+//   console.log('onSubmitAddItem()');
+//   e.preventDefault();
+//   console.log('quantity: ', document.forms.myform.quantity.value);
+//   const elemSelectionList = document.forms.myform.theproduct;
+//   console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
+//   console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
+//
+//   const cart = {};
+//   cart.product = {
+//     id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
+//     name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
+//     princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
+//   };
+//   cart.quantity = document.forms.myform.quantity.value;
+//
+//   console.log('cart: ', cart);
+// }
 
 /* ********************************************
-*  // I DONT WORK:  <form onSubmit={onSubmit}>
+*
 *********************************************** */
 const AddItem = ({ products, onSubmit }) => {
   // console.log('products: ', products);
+  console.log('*** onSubmit: ', onSubmit);
   return (
     <div className="container">
-      <form id="myform" onSubmit={onSubmitAddItem}>
+      <form id="myform" onSubmit={onSubmit}>
         Quantity:
         <input type="number" name="quantity" required />
         <br />
@@ -115,7 +116,6 @@ AddItem.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
-
 /* ********************************************
 *
 *********************************************** */
@@ -124,6 +124,13 @@ const cartItemsList = [
   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
 ];
+function addToCart(_item) {
+  const item = _item;
+  item.id = cartItemsList[cartItemsList.length - 1].id + 1;
+  cartItemsList.push(item);
+}
+
+let globalThis = null;
 
 /* ********************************************
 *
@@ -143,7 +150,31 @@ class App extends Component {
     ],
   };
 
+  onSubmitAddItem(e) {
+    console.log('MyonSubmitAddItem()');
+    e.preventDefault();
+    console.log('quantity: ', document.forms.myform.quantity.value);
+    const elemSelectionList = document.forms.myform.theproduct;
+    console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
+    console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
+
+    const newItem = {};
+    newItem.product = {
+      id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
+      name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
+      princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
+    };
+    newItem.quantity = document.forms.myform.quantity.value;
+
+    addToCart(newItem);
+
+    globalThis.render();
+
+    // console.log('cart: ', cart);
+  }
+
   render() {
+    globalThis = this;
     // console.log('onSubmitAddItem: ', onSubmitAddItem); // I EXIST!
     const { products } = this.state; // linter wants destructuring for call to AddItem
     return (
@@ -152,12 +183,14 @@ class App extends Component {
         <p>&nbsp;</p>
         <CartItems items={cartItemsList} />
         <hr />
-        <AddItem products={products} onsubmit={onSubmitAddItem} />
+        <AddItem products={products} onSubmit={this.onSubmitAddItem} />
         <p>&nbsp;</p>
         <Foot year={2019} />
       </div>
     );
   }
+
+
 }
 
 export default App;
