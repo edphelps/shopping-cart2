@@ -37,10 +37,21 @@ function formatDollars(cents) {
 /* ********************************************
 *  Row display of a cart item
 *********************************************** */
-const CartItem = ({ item }) => (
+const CartItem = ({ item, removeItemCB }) => (
   <div className="list-group-item">
     <div className="row">
-      <div className="col-md-8">{item.product.name}</div>
+      <div className="col-md-1">
+        <a
+          onClick={(e) => {
+            e.preventDefault();
+            removeItemCB(item.id);
+          }}
+          href="#"
+        >
+          X
+        </a>
+      </div>
+      <div className="col-md-7">{item.product.name}</div>
       <div className="col-md-2">{formatDollars(item.product.priceInCents)}</div>
       <div className="col-md-2">{item.quantity}</div>
     </div>
@@ -48,6 +59,7 @@ const CartItem = ({ item }) => (
 );
 CartItem.propTypes = {
   item: PropTypes.objectOf(PropTypes.object).isRequired,
+  removeItemCB: PropTypes.func.isRequired,
 };
 
 /* ********************************************
@@ -56,7 +68,8 @@ CartItem.propTypes = {
 const CartTotalRow = ({ items }) => (
   <div className="list-group-item">
     <div className="row">
-      <div className="col-md-8"><b>TOTALS</b></div>
+      <div className="col-md-1"></div>
+      <div className="col-md-7"><b>TOTALS</b></div>
       <div className="col-md-2"><b>{formatDollars(items.reduce((a, c) => a + c.product.priceInCents * c.quantity, 0))}</b></div>
       <div className="col-md-2"><b>{items.reduce((a, c) => a + c.quantity, 0)}</b></div>
     </div>
@@ -69,24 +82,26 @@ CartTotalRow.propTypes = {
 /* ********************************************
 *  Table display of all items in cart
 *********************************************** */
-const CartItems = ({ items }) => (
+const CartItems = ({ items, removeItemCB }) => (
   <div className="container">
     <h1>Cart Items</h1>
     <div className="list-group">
       <div className="list-group-item">
         <div className="row">
-          <div className="col-md-8"><b>Product</b></div>
+          <div className="col-md-1"><b>X</b></div>
+          <div className="col-md-7"><b>Product</b></div>
           <div className="col-md-2"><b>Price</b></div>
           <div className="col-md-2"><b>Quantity</b></div>
         </div>
       </div>
-      { items.map(item => <CartItem key={item.id} item={item} />) }
+      { items.map(item => <CartItem key={item.id} item={item} removeItemCB={removeItemCB} />) }
       <CartTotalRow items={items} />
     </div>
   </div>
 );
 CartItems.propTypes = {
   items: PropTypes.arrayOf(PropTypes.object).isRequired,
+  removeItemCB: PropTypes.func.isRequired,
 };
 
 /* ********************************************
@@ -115,6 +130,9 @@ const AddItemForm = ({ products, addItemCB }) => {
 
     // CB sent by parent to get the date back from the form
     addItemCB(newItem);
+
+    // clear the form
+    e.target.reset();
   };
 
   /* ************************
@@ -188,6 +206,19 @@ class App extends Component {
   }
 
   /* ********************************************
+  *  Callback used by the cart list to delete an item
+  *********************************************** */
+  removeFromCart = (id) => {
+    this.setState(prevState => ({
+      cartItemsList: prevState.cartItemsList.filter(item => item.id !== id),
+    }));
+
+    // console.log('---------');
+    // console.log('cartItemsList: ', this.state.cartItemsList);
+    // console.log('---------');
+  }
+
+  /* ********************************************
   *  render()
   *********************************************** */
   render() {
@@ -201,7 +232,7 @@ class App extends Component {
         <AddItemForm products={products} addItemCB={this.addToCart} />
         <hr />
 
-        <CartItems items={cartItemsList} />
+        <CartItems items={cartItemsList} removeItemCB={this.removeFromCart} />
         <hr />
 
         <Foot year={2019} />
