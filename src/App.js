@@ -12,14 +12,6 @@ const Nav = () => (
   </nav>
 );
 
-// const Nav = () => {
-//   return (
-//     <nav className="navbar navbar-dark bg-primary">
-//       <a className="navbar-brand" href="#">Shopping Cart</a>
-//     </nav>
-//   );
-// };
-
 /* ********************************************
 *
 *********************************************** */
@@ -39,60 +31,133 @@ Foot.propTypes = {
 /* ********************************************
 *
 *********************************************** */
-const CartItem = ({ item }) => {
-  return (
-    <div className="collection-item">
-      <div className="row">
-        <div className="col-md-8">{item.product.name}</div>
-        <div className="col-md-2">{item.product.priceInCents}</div>
-        <div className="col-md-2">{item.quantity}</div>
-      </div>
+const CartItem = ({ item }) => (
+  <div className="list-group-item">
+    <div className="row">
+      <div className="col-md-8">{item.product.name}</div>
+      <div className="col-md-2">{item.product.priceInCents}</div>
+      <div className="col-md-2">{item.quantity}</div>
     </div>
-  );
+  </div>
+);
+CartItem.propTypes = {
+  item: PropTypes.objectOf(PropTypes.object).isRequired,
+};
+
+
+/* ********************************************
+*
+*********************************************** */
+const CartItems = ({ items }) => (
+  <div className="container">
+    <h1>Cart Items</h1>
+    <div className="list-group">
+      <div className="list-group-item">
+        <div className="row">
+          <div className="col-md-8">Product</div>
+          <div className="col-md-2">Price</div>
+          <div className="col-md-2">Quantity</div>
+        </div>
+      </div>
+      { items.map(item => <CartItem key={item.id} item={item} />) }
+    </div>
+  </div>
+);
+CartItems.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 /* ********************************************
 *
 *********************************************** */
-const CartItems = () => {
-  const myItem = { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 };
+function onSubmitAddItem(e) {
+  console.log('onSubmitAddItem()');
+  e.preventDefault();
+  console.log('quantity: ', document.forms.myform.quantity.value);
+  const elemSelectionList = document.forms.myform.theproduct;
+  console.log('product: ', elemSelectionList.options[elemSelectionList.selectedIndex].value);
+  console.log('price: ', elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents);
+
+  const cart = {};
+  cart.product = {
+    id: elemSelectionList.options[elemSelectionList.selectedIndex].value,
+    name: elemSelectionList.options[elemSelectionList.selectedIndex].text,
+    princeInCents: elemSelectionList.options[elemSelectionList.selectedIndex].dataset.priceincents,
+  };
+  cart.quantity = document.forms.myform.quantity.value;
+
+  console.log('cart: ', cart);
+}
+
+/* ********************************************
+*  // I DONT WORK:  <form onSubmit={onSubmit}>
+*********************************************** */
+const AddItem = ({ products, onSubmit }) => {
+  // console.log('products: ', products);
   return (
     <div className="container">
-      <h1>Cart Items</h1>
-      <div className="list-group">
-        <div className="list-group-item">
-          <div className="row">
-            <div className="col-md-8">Product</div>
-            <div className="col-md-2">Price</div>
-            <div className="col-md-2">Quantity</div>
-          </div>
-        </div>
-        <CartItem item={myItem} />
-      </div>
+      <form id="myform" onSubmit={onSubmitAddItem}>
+        Quantity:
+        <input type="number" name="quantity" required />
+        <br />
+        <select id="theproduct" name="theproduct">
+          { products.map(product => (
+            <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
+        </select>
+        <br />
+        <button type="submit">Submit</button>
+      </form>
     </div>
   );
 };
+AddItem.propTypes = {
+  products: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onSubmit: PropTypes.func.isRequired,
+};
+
+
+/* ********************************************
+*
+*********************************************** */
+const cartItemsList = [
+  { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
+  { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
+  { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
+];
 
 /* ********************************************
 *
 *********************************************** */
 class App extends Component {
-  cartItemsList = [
-    { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
-    { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
-    { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
-  ];
+  state = {
+    products: [
+      { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 },
+      { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 },
+      { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 },
+      { id: 43, name: 'Small Aluminum Keyboard', priceInCents: 2500 },
+      { id: 44, name: 'Practical Copper Plate', priceInCents: 1000 },
+      { id: 45, name: 'Awesome Bronze Pants', priceInCents: 399 },
+      { id: 46, name: 'Intelligent Leather Clock', priceInCents: 2999 },
+      { id: 47, name: 'Ergonomic Bronze Lamp', priceInCents: 40000 },
+      { id: 48, name: 'Awesome Leather Shoes', priceInCents: 3990 },
+    ],
+  };
 
   render() {
+    // console.log('onSubmitAddItem: ', onSubmitAddItem); // I EXIST!
+    const { products } = this.state; // linter wants destructuring for call to AddItem
     return (
       <div>
         <Nav />
-        <CartItems />
+        <p>&nbsp;</p>
+        <CartItems items={cartItemsList} />
+        <hr />
+        <AddItem products={products} onsubmit={onSubmitAddItem} />
+        <p>&nbsp;</p>
         <Foot year={2019} />
       </div>
     );
   }
 }
-
 
 export default App;
