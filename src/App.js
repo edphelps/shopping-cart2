@@ -128,9 +128,12 @@ function addToCart(_item) {
   const item = _item;
   item.id = cartItemsList[cartItemsList.length - 1].id + 1;
   cartItemsList.push(item);
+  console.log("---------");
+  console.log('cartItemsList: ', cartItemsList);
 }
 
 let globalThis = null;
+let globalRender = null;
 
 /* ********************************************
 *
@@ -150,6 +153,11 @@ class App extends Component {
     ],
   };
 
+  componentDidMount() {
+    globalRender = this.render;
+    globalThis = this;
+  }
+
   onSubmitAddItem(e) {
     console.log('MyonSubmitAddItem()');
     e.preventDefault();
@@ -168,19 +176,21 @@ class App extends Component {
 
     addToCart(newItem);
 
-    globalThis.render();
+    // globalThis.render();
+    globalRender.call(globalThis);
 
     // console.log('cart: ', cart);
   }
 
   render() {
-    globalThis = this;
+    console.log("---- rendering ----");
     // console.log('onSubmitAddItem: ', onSubmitAddItem); // I EXIST!
     const { products } = this.state; // linter wants destructuring for call to AddItem
     return (
       <div>
         <Nav />
         <p>&nbsp;</p>
+        <p>{Date()}</p>
         <CartItems items={cartItemsList} />
         <hr />
         <AddItem products={products} onSubmit={this.onSubmitAddItem} />
