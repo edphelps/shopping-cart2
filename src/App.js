@@ -17,7 +17,7 @@ const Nav = () => (
 const Foot = ({ year }) => (
   <nav className="navbar navbar-dark bg-dark">
     <a className="navbar-brand" href="#">
-      &copy;
+      &copy;&nbsp;
       {year}
     </a>
   </nav>
@@ -48,7 +48,7 @@ const CartItem = ({ item, removeItemCB }) => (
             removeItemCB(item.id);
           }}
         >
-          X
+          <i className="fas fa-trash-alt" />
         </button>
         {/* <a
           onClick={(e) => {
@@ -97,7 +97,7 @@ const CartItems = ({ items, removeItemCB }) => (
     <div className="list-group">
       <div className="list-group-item">
         <div className="row">
-          <div className="col-md-1"><b>X</b></div>
+          <div className="col-md-1">&nbsp;del</div>
           <div className="col-md-7"><b>Product</b></div>
           <div className="col-md-2"><b>Price</b></div>
           <div className="col-md-2"><b>Quantity</b></div>
@@ -151,7 +151,7 @@ const AddItemForm = ({ products, addItemCB }) => {
     <div className="container">
       <br />
       <form id="myform" onSubmit={onSubmit}>
-        ADD: &nbsp;Quantity:&nbsp;
+        <b>ADD</b> &nbsp;Quantity:&nbsp;
         <input type="text" name="quantity" size="5" width="20px" required />
         &nbsp;&nbsp;Product:&nbsp;
         <select id="selProduct" name="selProduct">
