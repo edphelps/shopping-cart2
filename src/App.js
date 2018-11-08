@@ -29,6 +29,13 @@ Foot.propTypes = {
   year: PropTypes.number.isRequired,
 };
 
+/* ********************************************
+*  Format numeric cents to $12.34
+*********************************************** */
+function formatDollars(cents) {
+  const s = String(cents);
+  return `$${s.slice(0, -2)}.${s.slice(-2)}`;
+}
 
 /* ********************************************
 *  Row display of a cart item
@@ -37,7 +44,7 @@ const CartItem = ({ item }) => (
   <div className="list-group-item">
     <div className="row">
       <div className="col-md-8">{item.product.name}</div>
-      <div className="col-md-2">{item.product.priceInCents}</div>
+      <div className="col-md-2">{formatDollars(item.product.priceInCents)}</div>
       <div className="col-md-2">{item.quantity}</div>
     </div>
   </div>
@@ -56,12 +63,13 @@ const CartItems = ({ items }) => (
     <div className="list-group">
       <div className="list-group-item">
         <div className="row">
-          <div className="col-md-8">Product</div>
-          <div className="col-md-2">Price</div>
-          <div className="col-md-2">Quantity</div>
+          <div className="col-md-8"><b>Product</b></div>
+          <div className="col-md-2"><b>Price</b></div>
+          <div className="col-md-2"><b>Quantity</b></div>
         </div>
       </div>
       { items.map(item => <CartItem key={item.id} item={item} />) }
+      <CartTotalRow items={items} />
     </div>
   </div>
 );
@@ -70,20 +78,36 @@ CartItems.propTypes = {
 };
 
 /* ********************************************
+*  Cart total row for listing table
+*********************************************** */
+const CartTotalRow = ({ items }) => (
+  <div className="list-group-item">
+    <div className="row">
+      <div className="col-md-8"><b>TOTALS</b></div>
+      <div className="col-md-2"><b>{formatDollars(items.reduce((a, c) => a + c.product.priceInCents * c.quantity, 0))}</b></div>
+      <div className="col-md-2"><b>{items.reduce((a, c) => a + c.quantity, 0)}</b></div>
+    </div>
+  </div>
+);
+CartTotalRow.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
+
+/* ********************************************
 *  Form to add a new item to the cart
 *********************************************** */
 const AddItem = ({ products, onSubmit }) => (
   <div className="container">
+    <br />
     <form id="myform" onSubmit={onSubmit}>
-      Quantity:
-      <input type="number" name="quantity" required />
-      <br />
+      ADD: &nbsp;Quantity:&nbsp;
+      <input type="text" name="quantity" size="5" width="20px" required />
+      &nbsp;&nbsp;Product:&nbsp;
       <select id="selProduct" name="selProduct">
         { products.map(product => (
           <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
       </select>
-      <br />
-      <button type="submit">Submit</button>
+      &nbsp;&nbsp;<button type="submit">Submit</button>
     </form>
   </div>
 );
@@ -93,22 +117,16 @@ AddItem.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
 
-// /* ********************************************
-// *  TODO: move this into state
-// *********************************************** */
-// const cartItemsList = [
-//   { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
-//   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
-//   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
-// ];
-
 /* ********************************************
 *  Helper to add a new item to the cart
 *********************************************** */
 function addToCart(_item) {
   const item = _item;
   item.id = globalThis.state.cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
-  globalThis.state.cartItemsList.unshift(item);
+  const newCart = [item, ...globalThis.state.cartItemsList];
+  globalThis.setState((prevState) => ({
+    cartItemsList: newCart,
+  }));
   console.log('---------');
   console.log('cartItemsList: ', globalThis.state.cartItemsList);
   console.log('---------');
@@ -120,7 +138,6 @@ function addToCart(_item) {
 *********************************************** */
 class App extends Component {
   state = {
-    timestamp: new Date(),
     products: [
       { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 },
       { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 },
@@ -138,16 +155,6 @@ class App extends Component {
       { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
     ],
   };
-
-  // /* ********************************************
-  // *  TODO: move this into state
-  // *********************************************** */
-  // cartItemsList = [
-  //   { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
-  //   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
-  //   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
-  // ];
-
 
   componentDidMount() {
     globalThis = this;
@@ -171,10 +178,6 @@ class App extends Component {
     newItem.quantity = parseInt(document.forms.myform.quantity.value, 10);
     addToCart(newItem);
 
-    // force rendering
-    globalThis.setState((prevState) => ({
-      timestamp: Date()
-    }));
   }
 
   /* ********************************************
@@ -183,13 +186,10 @@ class App extends Component {
   render() {
     console.log('render()');
     const { products } = this.state; // linter wants destructuring for call to AddItem
-    const { timestamp } = this.state; // linter wants destructuring to use this value below
     const { cartItemsList } = this.state; // linter wants destructuring to use this value below
     return (
       <div>
         <Nav />
-
-        <p>{timestamp.toString()}</p>
 
         <AddItem products={products} onSubmit={this.onSubmitAddItem} />
         <hr />
