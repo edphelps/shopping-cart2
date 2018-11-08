@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import './App.css';
 import PropTypes from 'prop-types';
 
+// TODO: figure out how not to need this
+let globalThis = null;
+
 /* ********************************************
 *  Nav bar
 *********************************************** */
@@ -69,51 +72,48 @@ CartItems.propTypes = {
 /* ********************************************
 *  Form to add a new item to the cart
 *********************************************** */
-const AddItem = ({ products, onSubmit }) => {
-  return (
-    <div className="container">
-      <form id="myform" onSubmit={onSubmit}>
-        Quantity:
-        <input type="number" name="quantity" required />
-        <br />
-        <select id="selProduct" name="selProduct">
-          { products.map(product => (
-            <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
-        </select>
-        <br />
-        <button type="submit">Submit</button>
-      </form>
-    </div>
-  );
-};
+const AddItem = ({ products, onSubmit }) => (
+  <div className="container">
+    <form id="myform" onSubmit={onSubmit}>
+      Quantity:
+      <input type="number" name="quantity" required />
+      <br />
+      <select id="selProduct" name="selProduct">
+        { products.map(product => (
+          <option key={product.id} data-priceincents={product.priceInCents} value={product.id}>{product.name}</option>)) }
+      </select>
+      <br />
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+);
+
 AddItem.propTypes = {
   products: PropTypes.arrayOf(PropTypes.object).isRequired,
   onSubmit: PropTypes.func.isRequired,
 };
 
-/* ********************************************
-*  TODO: move this into state
-*********************************************** */
-const cartItemsList = [
-  { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
-  { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
-  { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
-];
+// /* ********************************************
+// *  TODO: move this into state
+// *********************************************** */
+// const cartItemsList = [
+//   { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
+//   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
+//   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
+// ];
 
 /* ********************************************
 *  Helper to add a new item to the cart
 *********************************************** */
 function addToCart(_item) {
   const item = _item;
-  item.id = cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
-  cartItemsList.unshift(item);
+  item.id = globalThis.state.cartItemsList.reduce((a, c) => Math.max(a, c.id), 0) + 1;
+  globalThis.state.cartItemsList.unshift(item);
   console.log('---------');
-  console.log('cartItemsList: ', cartItemsList);
+  console.log('cartItemsList: ', globalThis.state.cartItemsList);
   console.log('---------');
 }
 
-let globalThis = null;
-// let globalRender = null;
 
 /* ********************************************
 *  Main app
@@ -132,7 +132,22 @@ class App extends Component {
       { id: 47, name: 'Ergonomic Bronze Lamp', priceInCents: 40000 },
       { id: 48, name: 'Awesome Leather Shoes', priceInCents: 3990 },
     ],
+    cartItemsList: [
+      { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
+      { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
+      { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
+    ],
   };
+
+  // /* ********************************************
+  // *  TODO: move this into state
+  // *********************************************** */
+  // cartItemsList = [
+  //   { id: 1, product: { id: 40, name: 'Mediocre Iron Watch', priceInCents: 399 }, quantity: 1 },
+  //   { id: 2, product: { id: 41, name: 'Heavy Duty Concrete Plate', priceInCents: 499 }, quantity: 2 },
+  //   { id: 3, product: { id: 42, name: 'Intelligent Paper Knife', priceInCents: 1999 }, quantity: 1 },
+  // ];
+
 
   componentDidMount() {
     globalThis = this;
@@ -169,6 +184,7 @@ class App extends Component {
     console.log('render()');
     const { products } = this.state; // linter wants destructuring for call to AddItem
     const { timestamp } = this.state; // linter wants destructuring to use this value below
+    const { cartItemsList } = this.state; // linter wants destructuring to use this value below
     return (
       <div>
         <Nav />
