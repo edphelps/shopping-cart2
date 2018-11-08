@@ -35,13 +35,22 @@ function formatDollars(cents) {
 }
 
 /* ********************************************
-*  Row display of a cart item
+*  Row display of a cart item with delete button
 *********************************************** */
 const CartItem = ({ item, removeItemCB }) => (
   <div className="list-group-item">
     <div className="row">
       <div className="col-md-1">
-        <a
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            removeItemCB(item.id);
+          }}
+        >
+          X
+        </button>
+        {/* <a
           onClick={(e) => {
             e.preventDefault();
             removeItemCB(item.id);
@@ -49,7 +58,7 @@ const CartItem = ({ item, removeItemCB }) => (
           href="#"
         >
           X
-        </a>
+        </a> */}
       </div>
       <div className="col-md-7">{item.product.name}</div>
       <div className="col-md-2">{formatDollars(item.product.priceInCents)}</div>
@@ -199,10 +208,6 @@ class App extends Component {
     this.setState(prevState => ({
       cartItemsList: [item, ...prevState.cartItemsList],
     }));
-
-    // console.log('---------');
-    // console.log('cartItemsList: ', this.state.cartItemsList);
-    // console.log('---------');
   }
 
   /* ********************************************
@@ -212,10 +217,6 @@ class App extends Component {
     this.setState(prevState => ({
       cartItemsList: prevState.cartItemsList.filter(item => item.id !== id),
     }));
-
-    // console.log('---------');
-    // console.log('cartItemsList: ', this.state.cartItemsList);
-    // console.log('---------');
   }
 
   /* ********************************************
