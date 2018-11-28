@@ -67,7 +67,15 @@ const CartItem = ({ item, removeItemCB }) => (
   </div>
 );
 CartItem.propTypes = {
-  item: PropTypes.objectOf(PropTypes.object).isRequired,
+  item: PropTypes.shape({
+    id: PropTypes.number,
+    products: PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+      priceInCents: PropTypes.number,
+    }),
+    quantity: PropTypes.number,
+  }).isRequired,
   removeItemCB: PropTypes.func.isRequired,
 };
 
@@ -241,5 +249,9 @@ class App extends Component {
     );
   }
 }
+
+// heroku create --buildpack https://github.com/mars/create-react-app-buildpack.git
+// git push heroku master
+// heroku open
 
 export default App;
